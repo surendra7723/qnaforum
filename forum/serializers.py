@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from djoser.serializers import UserCreateSerializer as BaseUserCreateSerializer
+# from djoser.serializers import UserCreateSerializer as BaseUserCreateSerializer
 # from rest_framework 
 from .models import Question,Answer,UserProfile,QuestionVote,AnswerVote,Report
 from django.contrib.auth.models import User

@@ -38,10 +38,12 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    
+    "rest_framework.authtoken",
     'forum.apps.ForumConfig',
     'django_extensions',
     'rest_framework',
-    'rest_framework_simple_jwt',
+    'rest_framework_nested',
     # 'dj_rest_auth','
     
     # 'rest_framework.authtoken',
@@ -109,12 +111,18 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 REST_FRAMEWORK = {
- 
-"DEFAULT_AUTHENTICATION_CLASSES":[
-    "rest_framework.authentication.SessionAuthentication",
-    "rest_framework.authentication.TokenAuthentication",
-],
+    
+    
+    "DEFAULT_PERMISSION_CLASSES": [
+        "rest_framework.permissions.IsAuthenticated",
+        
+    ],
+    "DEFAULT_AUTHENTICATION_CLASSES": [ # new
+        "rest_framework.authentication.SessionAuthentication",
+        "rest_framework.authentication.TokenAuthentication",
+    ],
 }
+
 
 # SIMPLE_JWT = {
 #    'AUTH_HEADER_TYPES': ('JWT',),
@@ -141,12 +149,7 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-# AUTH_USER_MODEL=''
+
 MEDIA_URL = '/media/' 
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media/')
 
-# DJOSER={
-# "SERIALIZERS":{
-#     "user_create":"forum.serializers.UserCreateSerializer"
-# }
-# }

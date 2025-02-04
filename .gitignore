@@ -1,0 +1,86 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environment
+venv/
+env/
+.venv/
+ENV/
+
+# Django-related files
+db.sqlite3
+db.sqlite3-journal
+*.log
+*.pot
+*.pyc
+*.pyo
+
+# Local environment settings
+.env
+.env.*
+*.local
+
+# VS Code settings
+.vscode/
+
+# PyCharm settings
+.idea/
+*.iml
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# Coverage reports
+htmlcov/
+.coverage
+*.cover
+.hypothesis/
+
+# Migrations (optional: keep if sharing database state)
+**/migrations/*.py
+!**/migrations/__init__.py
+
+# Testing & CI/CD
+.tox/
+.nox/
+.pytest_cache/
+.coverage
+coverage.xml
+
+# Docker & Deployment
+docker-compose.override.yml
+*.pem
+*.key
+*.crt
+
+# Node.js / Frontend
+node_modules/
+npm-debug.log
+yarn.lock
+package-lock.json
+
+# Celery
+celerybeat-schedule
+celerybeat.pid
+
+# IDE, Editor, and OS-specific files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Pip dependencies (if using requirements files)
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Security & Secrets
+*.pem
+*.crt
+*.key
+secrets.json
+config.json
+
+# Gunicorn
+gunicorn.log
+gunicorn-error.log

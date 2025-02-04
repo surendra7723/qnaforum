@@ -25,7 +25,7 @@ urlpatterns = [
     path("api/forum/",include("forum.urls")),
     path("api-auth/",include("rest_framework.urls")),
     
-    path("api/forum/dj-rest-auth/", include("dj_rest_auth.urls")),
+    # path("api/forum/dj-rest-auth/", include("dj_rest_auth.urls")),
 
 ]
 if settings.DEBUG:  
