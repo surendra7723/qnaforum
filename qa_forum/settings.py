@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
 from pathlib import Path
+from datetime import timedelta
 import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -39,11 +40,13 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     
-    "rest_framework.authtoken",
+    # "rest_framework.authtoken",
     'forum.apps.ForumConfig',
     'django_extensions',
     'rest_framework',
-    'rest_framework_nested',
+    # 'rest_framework_nested',
+    'djoser',
+    "rest_framework_nested"
     # 'dj_rest_auth','
     
     # 'rest_framework.authtoken',
@@ -118,16 +121,24 @@ REST_FRAMEWORK = {
         
     ],
     "DEFAULT_AUTHENTICATION_CLASSES": [ # new
-        "rest_framework.authentication.SessionAuthentication",
-        "rest_framework.authentication.TokenAuthentication",
+        
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
     ],
 }
 
 
-# SIMPLE_JWT = {
-#    'AUTH_HEADER_TYPES': ('JWT',),
-# }
-
+SIMPLE_JWT = {
+   'AUTH_HEADER_TYPES': ('JWT',),
+    "ACCESS_TOKEN_LIFETIME": timedelta(days=5),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
+}
+DJOSER = {
+    'PASSWORD_RESET_CONFIRM_URL': '#/password/reset/confirm/{uid}/{token}',
+    'USERNAME_RESET_CONFIRM_URL': '#/username/reset/confirm/{uid}/{token}',
+    'ACTIVATION_URL': '#/activate/{uid}/{token}',
+    'SEND_ACTIVATION_EMAIL': True,
+    'SERIALIZERS': {},
+}
 # Internationalization
 # https://docs.djangoproject.com/en/5.1/topics/i18n/
 

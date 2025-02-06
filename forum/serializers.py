@@ -9,11 +9,15 @@ from django.contrib.auth.models import User
     
 
 class UserProfileSerializer(serializers.ModelSerializer):
-    user_id=serializers.IntegerField()
-    #
+    username=serializers.SerializerMethodField()
+    
     class Meta:
         model=UserProfile
-        fields=['id','user_id','role',]
+        
+        fields=['id','user_id','role','username']
+    
+    def get_username(self,obj):
+        return obj.user.username
         
         
         
@@ -60,12 +64,12 @@ class QuestionSerializer(serializers.ModelSerializer):
     # def get_queryset(self):
     #     user = self.request.user
 
-    # created_by = serializers.StringRelatedField(source="created_by.profile", read_only=True)
+    created_by = serializers.StringRelatedField(source="created_by.profile", read_only=True)
     
 
     class Meta:
         model = Question
-        fields = ["title","total_likes","status","content", "image", "created_at", "remarks", "topic"]
+        fields = ["id","title","total_likes","status","content", "image", "created_at", "remarks", "topic","created_by"]
         
         
         read_only_fields=["status"]
