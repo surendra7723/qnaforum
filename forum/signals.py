@@ -12,7 +12,7 @@ def create_user_profile(sender, instance, created, **kwargs):
 def create_report(sender,instance,created,**kwargs):
     if created:
         if instance.created_by: 
-            print("hi INSIDE AFASFA")
+            # print("hi INSIDE AFASFA")
             Report.objects.create(question=instance,user=instance.created_by)
         else:
             Report.objects.create(question=instance,user=User.objects.filter(is_superuser=True).first())

@@ -73,6 +73,7 @@ class Answer(models.Model):
     body=models.TextField()
     answered_at=models.DateTimeField(auto_now_add=True)
     answered_by=models.ForeignKey(User,on_delete=models.CASCADE,related_name='useranswers')
+    edited=models.BooleanField(default=False)
     
     def __str__(self):
         return f" answer for {self.question} by {self.answered_by}"
@@ -92,6 +93,8 @@ class QuestionVote(models.Model):
 
     class Meta:
         unique_together=('voter','question')
+    
+
     
     def __str__(self):
         return f"vote for {self.question.id} by {self.voter.username}"

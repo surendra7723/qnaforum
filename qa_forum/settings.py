@@ -27,7 +27,7 @@ SECRET_KEY = 'django-insecure-z-$g5jai#^6bhiv2x651i07h56i($ti$v&_h0^#3@v@xom0wfs
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -115,22 +115,22 @@ AUTH_PASSWORD_VALIDATORS = [
 
 REST_FRAMEWORK = {
     
+    "DEFAULT_AUTHENTICATION_CLASSES": [ 
+        
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ],
     
     "DEFAULT_PERMISSION_CLASSES": [
         "rest_framework.permissions.IsAuthenticated",
         
-    ],
-    "DEFAULT_AUTHENTICATION_CLASSES": [ # new
-        
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
     ],
 }
 
 
 SIMPLE_JWT = {
    'AUTH_HEADER_TYPES': ('JWT',),
-    "ACCESS_TOKEN_LIFETIME": timedelta(days=5),
-    "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
+    "ACCESS_TOKEN_LIFETIME": timedelta(days=10),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=10),
 }
 DJOSER = {
     'PASSWORD_RESET_CONFIRM_URL': '#/password/reset/confirm/{uid}/{token}',
@@ -164,3 +164,4 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 MEDIA_URL = '/media/' 
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media/')
 
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
