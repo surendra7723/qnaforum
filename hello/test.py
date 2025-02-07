@@ -9,5 +9,6 @@ path = 'http://172.168.1.221:8000/users/'
 
 r = requests.post(path)
 
+Please remove this file
 
 print(r.json())
