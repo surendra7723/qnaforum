@@ -26,7 +26,7 @@ class IsAuthenticatedAndCanVote(permissions.BasePermission):
     
 
     def has_permission(self, request, view):
-        return request.user.is_authenticated 
+        return request.user.is_authenticated and not request.user.is_staff
     
     # def has_object_permission(self, request, view, obj):
     #     if self.

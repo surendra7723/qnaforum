@@ -1,19 +1,22 @@
 from django.contrib.auth.models import User
 from django.http import HttpResponse
+
 from rest_framework.permissions import IsAdminUser
 from rest_framework.views import APIView
 from rest_framework.decorators import action
-
+# from django.core.exceptions import ObjectDoesNotExist
 from openpyxl.styles import Font  
 import openpyxl
 from rest_framework import viewsets 
-from rest_framework.exceptions import PermissionDenied
+from rest_framework.exceptions import PermissionDenied,NotFound
+from rest_framework.response import Response
+from rest_framework.pagination import PageNumberPagination
+
 from rest_framework.viewsets import GenericViewSet
 from rest_framework.mixins import CreateModelMixin,RetrieveModelMixin,UpdateModelMixin,DestroyModelMixin
 from rest_framework.permissions import IsAuthenticated
 from django.db.models import Q
 from django.shortcuts import get_object_or_404
-from rest_framework.response import Response
 from .models import (
     Question, Answer, QuestionVote,
     AnswerVote,UserProfile,
@@ -35,6 +38,7 @@ from .permissions import (
 class UserProfileViewset(viewsets.ModelViewSet):
     permission_classes=[IsAdminUser]
     queryset=UserProfile.objects.all()
+    pagination_class=PageNumberPagination
     serializer_class=UserProfileSerializer
 
     # # breakpoint()
@@ -60,7 +64,8 @@ class UserProfileViewset(viewsets.ModelViewSet):
 
 
 class QuestionViewSet(viewsets.ModelViewSet):
-    permission_classes = [IsAuthenticated,IsOwnerOrAdmin]
+    permission_classes = [IsAuthenticated]
+    pagination_class=PageNumberPagination
     queryset = Question.objects.all()
     serializer_class = QuestionSerializer
     
@@ -123,6 +128,16 @@ class QuestionViewSet(viewsets.ModelViewSet):
             return Question.objects.filter(Q(status="APPROVED") | Q(created_by=user)).order_by('-created_at')
 
         return Question.objects.none()
+    
+    def destroy(self, request, *args, **kwargs):
+        question = self.get_object()
+        user=request.user
+
+        if question.status == "APPROVED"  and not user.is_staff:
+            raise PermissionDenied({"message": "Approved questions cannot be deleted!"})
+        if question.status == "PENDING" and question.created_by != user:
+            raise PermissionDenied({"message": "You can only delete your own pending questions!"})
+        return super().destroy(request, *args, **kwargs)
 
 class AdminDownloadQuestionReportView(APIView):
     permission_classes = [IsAdminUser]  
@@ -176,33 +191,29 @@ class AdminDownloadQuestionReportView(APIView):
 
 
 class AnswerViewSet(viewsets.ModelViewSet):
-    permission_classes=[IsAuthenticated]
+    permission_classes = [IsAuthenticated]
     serializer_class = AnswerSerializer
 
     def get_queryset(self):
-        question_id = self.kwargs["question_pk"] 
-        # breakpoint()
-        # print(self.kwrgs)
-        # if Question.objects.get(id=question_id):
-             
-        if Question.objects.get(id=question_id):
-            queryset = Answer.objects.filter(question__id=int(question_id))
-        else:
-            raise {"message":"No Questin matching the query "}
-    
-        
+        question_id = self.kwargs["question_pk"]
+        question = get_object_or_404(Question, id=question_id)
 
+        if question.status != "APPROVED":
+            raise NotFound("You are not authorized to view answers for this question.")
 
-        question = Question.objects.get(id = int(question_id))
+        return Answer.objects.filter(question=question)
 
-        if question.status == "APPROVED" or self.request.user.profile.role=="ADMIN" :
-            return queryset
-        else:
-            raise PermissionDenied({"message":"Question is not approved yet to answer "})
-    
     def perform_create(self, serializer):
         question_id = self.kwargs.get("question_pk")
-        serializer.save(question_id=question_id, answered_by=self.request.user)
+        question = get_object_or_404(Question, id=question_id)
+        serializer.save(question=question, answered_by=self.request.user) 
+        
+    def destroy(self, request, *args, **kwargs):
+        answer = self.get_object()
+        user=request.user
+        if not answer.answered_by == user:
+            raise PermissionDenied({"message": "You can't delete this answer"})
+        return super().destroy(request, *args, **kwargs) 
         
 
 class QuestionVoteViewSet(viewsets.ModelViewSet):
@@ -221,6 +232,7 @@ class QuestionVoteViewSet(viewsets.ModelViewSet):
         if not question.status=="APPROVED":
             raise PermissionDenied({"message":"question is not approved yet to vote"})
         
+    
         # elif question.status=="APPROVED":
             
             
@@ -258,6 +270,11 @@ class ReportViewset(viewsets.ModelViewSet):
     
     serializer_class=ReportSerializer
     
+    # def get_renderers(self):
+        
+    #     if self.action == "list":
+    #         return [JSONRenderer()]
+    #     return super().get_renderers()
     def get_queryset(self):
         requester=(self.request.user)
         # breakpoint()

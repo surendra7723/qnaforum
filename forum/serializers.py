@@ -14,46 +14,30 @@ class UserSerializer(serializers.ModelSerializer):
     username=serializers.SerializerMethodField()
     oldpassword=serializers.CharField()
     class Meta:
-        model=User
-        # fields=['username']
-        fields="__all__"
+            model = User
+            fields = ["id", "username", "email", "password", "old_password"]
 
     def create(self, validated_data):
-        username=validated_data['username']
-        email=validated_data['email']
-        password=validated_data['password']
-        user_obj=User(username=username,email=email)
-        user_obj.set_password(password)
-        user_obj.save
-        return user_obj
-    
+        user = User(
+            username=validated_data["username"],
+            email=validated_data["email"],
+        )
+        user.set_password(validated_data["password"])
+        user.save()
+        return user
     
     def update(self, instance, validated_data):
-        
-            
-        user = super().update(instance, validated_data)
-        
-            
-            
-        if 'password' in validated_data:
-            # breakpoint()
-            
-            
-                
-            old_password = self.context['request'].data.get('old_password')  
+        old_password = validated_data.pop("old_password", None)
 
-            if old_password:
-                    
-                if not user.check_password(old_password):
-                    raise serializers.ValidationError("Current password is incorrect.")
-                
-                
-            user.set_password(validated_data['password'])
-            user.save()
+        if "password" in validated_data:
+            if not old_password or not instance.check_password(old_password):
+                raise serializers.ValidationError({"old_password": "Current password is incorrect."})
+            instance.set_password(validated_data["password"])
 
-            return user
-            
-
+        return super().update(instance, validated_data)
+    
+    
+   
     
         
     
@@ -109,18 +93,28 @@ class UserProfileSerializer(serializers.ModelSerializer):
         # )
 
         # return user_profile
+class AnswerSerializer(serializers.ModelSerializer):
+    answered_by = serializers.SlugRelatedField(slug_field="username", read_only=True)
+    question_title = serializers.CharField(source='question.title', read_only=True)
+
+    class Meta:
+        model = Answer
+        fields = ["id", "question","question_title","body", "answered_at", "edited", "answered_by"]
+        read_only_fields=["edited"]
         
 class QuestionSerializer(serializers.ModelSerializer):
-    answers = serializers.HyperlinkedIdentityField(
-        view_name='question-answers-list',  
-        lookup_url_kwarg='question_pk'  
-    )
+    # answers = serializers.HyperlinkedIdentityField(
+    #     view_name='question-answers-list',  
+    #     lookup_url_kwarg='question_pk'  
+    # )
+    answers=serializers.SerializerMethodField('get_answers')
+    
     votes = serializers.HyperlinkedIdentityField(
         view_name='question-votes-list',  
         lookup_url_kwarg='question_pk'  
     )
+    created_by = serializers.SlugRelatedField(slug_field="username",read_only=True)
     total_likes = serializers.ReadOnlyField()
-    created_by = serializers.StringRelatedField(source="created_by.profile", read_only=True)
     download_report_url = serializers.SerializerMethodField()
 
     class Meta:
@@ -131,6 +125,9 @@ class QuestionSerializer(serializers.ModelSerializer):
             "answers", "votes", "download_report_url"
         ]
         read_only_fields = ["status"]
+        
+    def get_answers(self,obj):
+        return obj.questionanswers.all().values("body","answered_by","answered_at")
 
     def get_download_report_url(self, obj):
        
@@ -148,43 +145,19 @@ class QuestionSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("You are not allowed to modify the status field.")
         return value
     
-    def save(self, *args, **kwargs):
-    
-        existing_vote = QuestionVote.objects.filter(voter=self.voter, question=self.question).first()
-        
-        if existing_vote:
-            
-            existing_vote.vote_type = self.vote_type
-            existing_vote.save()  
-            return  
+
 
     
-        super().save(*args, **kwargs)
 
-    
-class AnswerSerializer(serializers.ModelSerializer):
-    
-    
-    class Meta:      
-        model=Answer
-        fields=["id","body","answered_at","edited"]
-    
     def update(self, instance, validated_data):
-        
-        validated_data.pop("answered_by", None)  
-        validated_data.pop("edited")
-        validated_data["edited"]=True
-        # breakpoint()
-
-        
+        if "body" in validated_data:
+            validated_data["edited"] = True
         return super().update(instance, validated_data)
 
     def create(self, validated_data):
         request = self.context.get("request")
-        validated_data.pop("edited")
-        validated_data["edited"]=True
         if request and request.user.is_authenticated:
-            validated_data["answered_by"] = request.user  # 
+            validated_data["created_by"] = request.user
         return super().create(validated_data)
 
 
@@ -198,21 +171,25 @@ class QuestionVoteSerializer(serializers.ModelSerializer):
         fields = ["id", "question", "voter", "voter_username", "vote_type", "created_at"]
 
     def validate(self, data):
-        
-        request = self.context.get("request")
-        user = request.user
-        question = data.get("question")
+        user = self.context["request"].user
+        question = data["question"]
+        existing_vote = QuestionVote.objects.filter(voter=user, question=question).first()
 
-        if QuestionVote.objects.filter(voter=user, question=question).exists():
-            raise serializers.ValidationError("You have already voted on this question.")
+        if existing_vote:
+            if existing_vote.vote_type == data["vote_type"]:
+                raise serializers.ValidationError("You have already cast this vote.")
+            existing_vote.vote_type = data["vote_type"]
+            existing_vote.save()
+            raise serializers.ValidationError("Vote updated.")
 
         return data
     
 class AnswerVoteSerializer(serializers.ModelSerializer):
-    
+    voter = serializers.HiddenField(default=serializers.CurrentUserDefault())
+
     class Meta:
-        model=AnswerVote
-        fields="__all__"
+        model = AnswerVote
+        fields = ["id", "answer", "voter", "vote_type", "created_at"]
 
 
 class ReportSerializer(serializers.ModelSerializer):
@@ -228,14 +205,14 @@ class ReportSerializer(serializers.ModelSerializer):
         fields="__all__"
         # read_only_fields=['User']
     
-    answers = serializers.HyperlinkedIdentityField(
-        view_name='question-answers-list',  
-        lookup_url_kwarg='question_pk'  
-    )
-    votes = serializers.HyperlinkedIdentityField(
-        view_name='question-votes-list',  
-        lookup_url_kwarg='question_pk'  
-    )
+    # answers = serializers.HyperlinkedIdentityField(
+    #     view_name='question-answers-list',  
+    #     lookup_url_kwarg='question_pk'  
+    # )
+    # votes = serializers.HyperlinkedIdentityField(
+    #     view_name='question-votes-list',  
+    #     lookup_url_kwarg='question_pk'  
+    # )
     
     def get_question_title(self,obj):
         return obj.question.title 
