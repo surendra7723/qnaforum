@@ -44,9 +44,11 @@ INSTALLED_APPS = [
     'forum.apps.ForumConfig',
     'django_extensions',
     'rest_framework',
+    "corsheaders",
     # 'rest_framework_nested',
     'djoser',
-    "rest_framework_nested"
+    "rest_framework_nested",
+    "drf_spectacular",
     # 'dj_rest_auth','
     
     # 'rest_framework.authtoken',
@@ -56,12 +58,19 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    "corsheaders.middleware.CorsMiddleware",
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
+CORS_ALLOWED_ORIGINS = (
+"http://localhost:3000",
+"http://localhost:8000",
+)
+# CSRF_TRUSTED_ORIGINS = ["localhost:3000"]
 
 ROOT_URLCONF = 'qa_forum.urls'
 
@@ -130,9 +139,16 @@ REST_FRAMEWORK = {
         'rest_framework.filters.OrderingFilter',
     ],
     "DEFAULT_PAGINATION_CLASS":"rest_framework.pagination.PageNumberPagination",
-    "PAGE_SIZE":10
+    "PAGE_SIZE":10,
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
 }
 
+SPECTACULAR_SETTINGS = {
+"TITLE": "qna project",
+"DESCRIPTION": "A simple forum for questions and answers",
+"VERSION": "1.0.0",
+# OTHER SETTINGS
+}
 
 SIMPLE_JWT = {
    'AUTH_HEADER_TYPES': ('JWT',),

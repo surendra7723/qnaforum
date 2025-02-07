@@ -233,13 +233,7 @@ class QuestionVoteViewSet(viewsets.ModelViewSet):
             raise PermissionDenied({"message":"question is not approved yet to vote"})
         
     
-        # elif question.status=="APPROVED":
-            
-            
-            
-        # elif not votes.exists():
-        #     raise PermissionDenied({"message": "No votes till date"})
-        
+
 
         return votes
         # queryset=QuestionVote.objects.filter(question__id=int(question_id))
