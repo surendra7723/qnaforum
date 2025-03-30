@@ -4,28 +4,19 @@ from django.contrib.auth.models import User
 
 
 
+#TODO :automatically create user profile when user is created if instance does not come from serializer 
+#TODO :automatically  set user role to admin if the user is_staff
 
 class UserProfile(models.Model):
-    ROLE_CHOICES=[
-        ("ADMIN","Admin"),
-        ("USER","User"),
-        
+    ROLE_CHOICES = [
+        ("ADMIN", "Admin"),
+        ("USER", "User"),
     ]
-    user=models.OneToOneField(User,on_delete=models.CASCADE,related_name='profile')
-    
-    role=models.CharField(max_length=10,choices=ROLE_CHOICES,default="USER")
-    created_at=models.DateTimeField(auto_now_add=True)
-    updated_at=models.DateTimeField(auto_now_add=True)
-    
-    def save(self, *args, **kwargs):
-        if self.role == "ADMIN":
-            self.user.is_staff = True  
-            self.user.save()
-        else:
-            self.user.is_staff = False  
-            self.user.save()
-        super().save(*args, **kwargs)
-    
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
+    role = models.CharField(max_length=10, choices=ROLE_CHOICES, default="USER")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)  # Use auto_now for updates
+
     def __str__(self):
         return f"{self.user.username} ({self.role})"
     

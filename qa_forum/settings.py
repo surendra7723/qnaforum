@@ -55,6 +55,16 @@ INSTALLED_APPS = [
     # 'djoser',
 ]
 
+# Debug Toolbar Settings
+if DEBUG:
+    INSTALLED_APPS += [
+        'debug_toolbar',
+    ]
+
+    INTERNAL_IPS = [
+        '127.0.0.1',
+    ]
+
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -65,6 +75,12 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
+# Debugging Middleware
+if DEBUG:
+    MIDDLEWARE += [
+        'debug_toolbar.middleware.DebugToolbarMiddleware',
+    ]
 
 CORS_ALLOWED_ORIGINS = (
 "http://localhost:3000",
