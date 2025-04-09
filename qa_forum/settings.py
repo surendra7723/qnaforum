@@ -130,6 +130,7 @@ DATABASES = {
             'MAX_CONNS': 100,
     },
 }
+}
 
 
 # Password validation
