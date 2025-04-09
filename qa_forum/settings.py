@@ -125,9 +125,9 @@ DATABASES = {
         'PASSWORD': env('DATABASE_PASSWORD'),
         'HOST': env('DATABASE_HOST'),
         'PORT': env('DATABASE_PORT'),
-        'CONN_MAX_AGE': 600,  # Keep the connection open for 10 minutes
-        'OPTIONS': {},  # Correctly aligned closing bracket for OPTIONS
-    }  # Correctly aligned closing bracket for default
+        'CONN_MAX_AGE': 600,  
+        'OPTIONS': {},  
+    }  
 }
 
 # Password validation
