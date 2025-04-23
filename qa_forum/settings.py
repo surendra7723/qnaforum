@@ -186,7 +186,9 @@ DJOSER = {
     'USERNAME_RESET_CONFIRM_URL': '#/username/reset/confirm/{uid}/{token}',
     'ACTIVATION_URL': '#/activate/{uid}/{token}',
     'SEND_ACTIVATION_EMAIL': True,
-    'SERIALIZERS': {},
+    'SERIALIZERS': {
+        'user_create':'forum.serializers.CustomUserCreateSerializer',
+    },
 }
 # Internationalization
 # https://docs.djangoproject.com/en/5.1/topics/i18n/
@@ -214,3 +216,4 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media/')
 
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+SHELL_PLUS='ipython'

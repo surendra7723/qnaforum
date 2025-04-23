@@ -1,8 +1,10 @@
+from djoser.serializers import UserCreateSerializer as BaseUserCreateSerializer
 from rest_framework import serializers
 from .models import QuestionVote
 from .models import Question, Answer, UserProfile, QuestionVote, AnswerVote, Report
 from django.contrib.auth.models import User
 from django.urls import reverse
+from django.db import transaction
 
 class UserSerializer(serializers.ModelSerializer):
     username = serializers.SerializerMethodField()
@@ -49,13 +51,42 @@ class UserSerializer(serializers.ModelSerializer):
         validated_data.pop("is_staff", None)
 
         return super().update(instance, validated_data)
+    
+
+class CustomUserCreateSerializer(BaseUserCreateSerializer):
+    class Meta:
+        model=BaseUserCreateSerializer.Meta.model
+        fields=BaseUserCreateSerializer.Meta.fields
+        
+    def perform_create(self,validated_data):
+        with transaction.atomic():
+            user=super().perform_create(validated_data)
+            UserProfile.objects.create(
+                user=user,
+                role="USER"
+            )
+            return user
 
 
 class UserProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserProfile
-        fields = ["id", "role"]
+        fields = ["id", "role","profile_pic",'favicon']
+        
+    def create(self,validated_data):
+        profile=UserProfile.objects.create(**validated_data)
 
+        if profile.profile_pic:
+            profile.process_profile_image()
+        
+        return profile
+
+
+class UserProfileThinSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserProfile
+        fields = ["id","favicon","role"]
+        read_only_fields=fields
 
 class AnswerSerializer(serializers.ModelSerializer):
     answered_by = serializers.SlugRelatedField(slug_field="username", read_only=True)
@@ -66,7 +97,7 @@ class AnswerSerializer(serializers.ModelSerializer):
         fields = ["id", "question", "question_title", "body", "answered_at", "edited", "answered_by"]
         read_only_fields = ["edited"]
 
-
+#TODO:fetch some more detail in user not just slug of user like name, profile(favicon-small), department,
 class QuestionSerializer(serializers.ModelSerializer):
     answers = serializers.SerializerMethodField()
     votes = serializers.HyperlinkedIdentityField(
@@ -76,6 +107,7 @@ class QuestionSerializer(serializers.ModelSerializer):
     created_by = serializers.SlugRelatedField(slug_field="username", read_only=True)
     total_likes = serializers.ReadOnlyField()
     download_report_url = serializers.SerializerMethodField()
+    
 
     class Meta:
         model = Question
