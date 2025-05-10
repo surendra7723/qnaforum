@@ -4,6 +4,7 @@ from django.contrib.auth.models import User
 
 
 
+
 #TODO :automatically create user profile when user is created if instance does not come from serializer 
 #TODO :automatically  set user role to admin if the user is_staff
 
@@ -12,15 +13,46 @@ class UserProfile(models.Model):
         ("ADMIN", "Admin"),
         ("USER", "User"),
     ]
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
+    user = models.OneToOneField(
+        User,
+        on_delete=models.CASCADE,
+        related_name='profile'
+          )
     role = models.CharField(max_length=10, choices=ROLE_CHOICES, default="USER")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)  # Use auto_now for updates
+    profile_pic = models.ImageField(upload_to='profile_pic',blank=True,null=True)
+    favicon = models.FileField(upload_to='profile_favicons',blank=True,null=True)      
 
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._original_profile_pic= self.profile_pic.name if self.pk and self.profile_pic else None                                   
+
+    
     def __str__(self):
         return f"{self.user.username} ({self.role})"
     
+    def save(self,*args,**kwargs):
+        super().save(*args,**kwargs)
 
+        if hasattr(self,'_profile_pic_changed') and self._profile_pic_changed:
+            self.process_profile_image()
+            self._profile_pic_changed=False
+
+    def process_profile_image(self):
+        from utils.image_utils import create_favicon
+
+        if self.profile_pic and not self.favicon:
+            favicon=create_favicon(self.profile_pic)
+            if favicon:
+                self.favicon.save(
+                    f"favicon_{self.user.username}.ico",
+                    favicon,
+                    save=True
+                )
+
+            
 class Question(models.Model):
     STATUS_CHOICES=[
         ("PENDING","Pending"),
@@ -137,29 +169,3 @@ class Report(models.Model):
     
     def __str__(self):
         return f"Report on Question {self.question.id} for {self.user} "
-    
-    
-    
-    
-        
-    
-
-        
-   
-
-    
-    
-    
-    
-    
-    
-    
-    
-         
-    
-    
-    
-
-
-
-# Create your models here.

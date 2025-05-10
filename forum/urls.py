@@ -12,10 +12,7 @@ questions_router = routers.NestedDefaultRouter(router, 'questions', lookup='ques
 questions_router.register('answers', AnswerViewSet, basename='question-answers')
 questions_router.register('votes', QuestionVoteViewSet, basename='question-votes')
 
-
-# 
 answers_router = routers.NestedDefaultRouter(questions_router, 'answers', lookup='answer')
-
 
 urlpatterns = [
     path("admin/questions/<int:question_id>/download-report/", AdminDownloadQuestionReportView.as_view(), name="admin-download-question-report"),
