@@ -148,7 +148,6 @@ class QuestionSerializer(serializers.ModelSerializer):
         return value
     
 
-
     
 
     def update(self, instance, validated_data):
