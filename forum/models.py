@@ -1,9 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
-
-
-
-
+from django.utils.functional import cached_property
 
 class UserProfile(models.Model):
     ROLE_CHOICES=[
@@ -51,15 +48,16 @@ class Question(models.Model):
     image=models.ImageField(upload_to='images',blank=True,null=True)
     created_by=models.ForeignKey(User,on_delete=models.CASCADE,blank=True,null=True)
     created_at=models.DateTimeField(auto_now_add=True)
+    modified_at=models.DateTimeField(auto_now=True)
     status=models.CharField(max_length=15,choices=STATUS_CHOICES,default="PENDING")
     remarks=models.TextField(null=True,blank=True)
     topic=models.CharField(choices=TOPIC_CHOICES,default="GENERAL",max_length=15)
 
-    @property
+    @cached_property
     def total_likes(self):
         return self.q_votes.filter(vote_type="LIKE").count()
     
-    @property
+    @cached_property
     def total_dislikes(self):
         return self.q_votes.filter(vote_type="DISLIKE").count()
     
@@ -77,6 +75,14 @@ class Answer(models.Model):
     
     def __str__(self):
         return f" answer for {self.question} by {self.answered_by}"
+    
+    @cached_property
+    def total_likes(self):
+        self.a_votes.filter(vote_type="LIKE").count()
+    
+    @cached_property
+    def total_dislikes(self):
+        self.a_votes.count()-self.total_likes
     
     
 
@@ -99,10 +105,6 @@ class QuestionVote(models.Model):
     def __str__(self):
         return f"vote for {self.question.id} by {self.voter.username}"
     
-
-    
-        
-        
 
 class AnswerVote(models.Model):
     VOTE_CHOICES=[

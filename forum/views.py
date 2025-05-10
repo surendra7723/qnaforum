@@ -40,24 +40,16 @@ class UserProfileViewset(viewsets.ModelViewSet):
     queryset=UserProfile.objects.all()
     pagination_class=PageNumberPagination
     serializer_class=UserProfileSerializer
-
-    # # breakpoint()
-    # serializer_class=UserProfileSerializer 
-    
     
     def get_queryset(self):
         user=self.request.user
         
         if user.is_authenticated and user.profile.role == "ADMIN":
             return UserProfile.objects.all()
-        # breakpoint()
-        # print("kjdfhaksdfdsjfjas")
+
         return UserProfile.objects.get(id=user.id)
         
-        
     
-    # def perform_create(self, serializer):
-    #     serializer.save()
     
 
     

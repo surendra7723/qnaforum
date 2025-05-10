@@ -12,7 +12,7 @@ from django.urls import reverse
 class UserSerializer(serializers.ModelSerializer):
     
     
-    username=serializers.SerializerMethodField()
+    username=serializers.CharField(read_only=True)
     oldpassword=serializers.CharField()
     class Meta:
             model = User

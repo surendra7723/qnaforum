@@ -6,7 +6,7 @@ router = routers.DefaultRouter()
 router.register('userprofiles', UserProfileViewset, basename='userprofiles')
 router.register('questions', QuestionViewSet)
 router.register('reports', ReportViewset, basename='reports')
-router.register('user',UserViewset)
+# router.register('user',UserViewset)
 
 questions_router = routers.NestedDefaultRouter(router, 'questions', lookup='question')
 questions_router.register('answers', AnswerViewSet, basename='question-answers')

@@ -5,6 +5,7 @@ __pycache__/
 
 # Virtual environment
 .venv/
+venv
 
 
 # Django-related files
@@ -13,4 +14,8 @@ db.sqlite3
 
 **/migrations/*.py
 !**/migrations/__init__.py
+
+# Frontend build & deps
+/frontend/node_modules/
+/frontend/dist/
 
