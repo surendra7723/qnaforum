@@ -6,7 +6,7 @@ __pycache__/
 # Virtual environment
 .venv/
 venv
-
+.env
 
 # Django-related files
 db.sqlite3
@@ -19,3 +19,4 @@ db.sqlite3
 /frontend/node_modules/
 /frontend/dist/
 
+.env

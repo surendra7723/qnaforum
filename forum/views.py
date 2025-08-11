@@ -41,19 +41,14 @@ class UserProfileViewset(viewsets.ModelViewSet):
     pagination_class=PageNumberPagination
     serializer_class=UserProfileSerializer
     
+    
     def get_queryset(self):
         user=self.request.user
         
         if user.is_authenticated and user.profile.role == "ADMIN":
             return UserProfile.objects.all()
-
-        return UserProfile.objects.get(id=user.id)
+        return UserProfile.objects.get_object_or_404(id=user.id)
         
-    
-    
-
-    
-
 
 class QuestionViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
@@ -286,7 +281,8 @@ class UserViewset(viewsets.ModelViewSet):
             return User.objects.all()
         elif not user.is_staff:
             return User.objects.filter(id=user.id)
-            
+
+
             
             
         
