@@ -126,6 +126,11 @@ class QuestionViewSet(viewsets.ModelViewSet):
             raise PermissionDenied({"message": "You can only delete your own pending questions!"})
         return super().destroy(request, *args, **kwargs)
 
+    def filter_queryset(self, queryset):
+        status = self.request.query_params.get('status')
+        if status:
+            queryset = queryset.filter(status=status)
+        return super().filter_queryset(queryset)
 class AdminDownloadQuestionReportView(APIView):
     permission_classes = [IsAdminUser]  
 

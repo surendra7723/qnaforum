@@ -2,11 +2,11 @@
 __pycache__/
 *.py[cod]
 *$py.class
-
+.env
 # Virtual environment
 .venv/
 venv
-.env
+
 
 # Django-related files
 db.sqlite3
