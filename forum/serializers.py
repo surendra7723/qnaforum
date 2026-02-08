@@ -7,20 +7,22 @@ from django.urls import reverse
 from django.db import transaction
 
 class UserSerializer(serializers.ModelSerializer):
-    username = serializers.SerializerMethodField()
+    username = serializers.CharField(read_only=True)
     oldpassword = serializers.CharField(write_only=True, required=False)
-
-    
-    
-    username=serializers.CharField(read_only=True)
-    oldpassword=serializers.CharField()
     class Meta:
         model = User
         fields = ["id", "username", "email", "password", "oldpassword"]
-        extra_kwargs = {"password": {"write_only": True}}
+        extra_kwargs = {
+            "password": {"write_only": True},
+            "oldpassword": {"write_only": True},
+        }
+    def to_representation(self, instance):
+        # Exclude 'oldpassword' from output
+        ret = super().to_representation(instance)
+        ret.pop('oldpassword', None)
+        return ret
 
-    def get_username(self, obj):
-        return obj.username
+
 
     def validate_password(self, value):
         # Add custom password validation logic here
@@ -44,16 +46,13 @@ class UserSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         old_password = validated_data.pop("oldpassword", None)
-
         if "password" in validated_data:
             if not old_password or not instance.check_password(old_password):
                 raise serializers.ValidationError({"oldpassword": "Current password is incorrect."})
             instance.set_password(validated_data["password"])
-
         # Prevent updating sensitive fields
         validated_data.pop("is_superuser", None)
         validated_data.pop("is_staff", None)
-
         return super().update(instance, validated_data)
     
 
@@ -95,11 +94,12 @@ class UserProfileThinSerializer(serializers.ModelSerializer):
 class AnswerSerializer(serializers.ModelSerializer):
     answered_by = serializers.SlugRelatedField(slug_field="username", read_only=True)
     question_title = serializers.CharField(source='question.title', read_only=True)
+    question = serializers.PrimaryKeyRelatedField(read_only=True)
 
     class Meta:
         model = Answer
         fields = ["id", "question", "question_title", "body", "answered_at", "edited", "answered_by"]
-        read_only_fields = ["edited"]
+        read_only_fields = ["edited", "question"]
 
 #TODO:fetch some more detail in user not just slug of user like name, profile(favicon-small), department,
 class QuestionSerializer(serializers.ModelSerializer):
@@ -149,14 +149,18 @@ class QuestionSerializer(serializers.ModelSerializer):
 class QuestionVoteSerializer(serializers.ModelSerializer):
     voter_username = serializers.CharField(source="voter.username", read_only=True)
     voter = serializers.HiddenField(default=serializers.CurrentUserDefault())
+    question = serializers.PrimaryKeyRelatedField(read_only=True)
 
     class Meta:
         model = QuestionVote
         fields = ["id", "question", "voter", "voter_username", "vote_type", "created_at"]
+        read_only_fields = ["question"]
 
     def validate(self, data):
         user = self.context["request"].user
-        question = data["question"]
+        question = self.instance.question if self.instance else self.context.get('question')
+        if not question:
+            question = data.get("question")
         existing_vote = QuestionVote.objects.filter(voter=user, question=question).first()
 
         if existing_vote:
@@ -174,7 +178,7 @@ class AnswerVoteSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = AnswerVote
-        fields = ["id", "answer", "voter", "vote_type", "created_at"]
+        fields = ["id", "answer", "voter", "vote_type", "create_at"]
 
 
 class ReportSerializer(serializers.ModelSerializer):

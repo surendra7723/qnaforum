@@ -208,35 +208,24 @@ class AnswerViewSet(viewsets.ModelViewSet):
         return super().destroy(request, *args, **kwargs) 
         
 
+
 class QuestionVoteViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticatedAndCanVote]
-    queryset=QuestionVote.objects.all()
+    queryset = QuestionVote.objects.all()
     serializer_class = QuestionVoteSerializer
-    
+
+    def perform_create(self, serializer):
+        question_id = self.kwargs.get('question_pk')
+        question = get_object_or_404(Question, id=question_id)
+        serializer.save(voter=self.request.user, question=question)
+
     def get_queryset(self):
-        user=self.request.user
-
-        
+        user = self.request.user
         question = get_object_or_404(Question, id=self.kwargs["question_pk"])
-        
-        votes= question.q_votes.all()
-        
-        if not question.status=="APPROVED":
-            raise PermissionDenied({"message":"question is not approved yet to vote"})
-        
-    
-
-
+        votes = question.q_votes.all()
+        if not question.status == "APPROVED":
+            raise PermissionDenied({"message": "question is not approved yet to vote"})
         return votes
-        # queryset=QuestionVote.objects.filter(question__id=int(question_id))
-        
-        
-        # return queryset
-    
-
-    # def get_queryset(self):
-    #     question_id = self.kwargs["pk"]  
-    #     return QuestionVote.objects.filter(question_id=question_id)  
 
 
 class AnswerVoteViewSet(viewsets.ModelViewSet):
